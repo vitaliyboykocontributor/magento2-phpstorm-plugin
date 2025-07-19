@@ -687,6 +687,7 @@
         <defaultLiveTemplates file="/liveTemplates/MagentoPWA.xml"/>
 
         <postStartupActivity implementation="com.magento.idea.magento2plugin.project.startup.CheckIfMagentoPathIsValidActivity"/>
+        <postStartupActivity implementation="com.magento.idea.magento2plugin.mcp.McpServerManager"/>
 
         <errorHandler implementation="com.magento.idea.magento2plugin.project.diagnostic.DefaultErrorReportSubmitter"/>
 
@@ -711,4 +712,9 @@
 
         <referenceResolver2 implementation="com.magento.idea.magento2plugin.lang.php.MagentoProxyDeclarationFilter" order="first"/>
     </extensions>
+    
+    <projectListeners>
+        <listener class="com.magento.idea.magento2plugin.mcp.McpProjectManagerListener"
+                  topic="com.intellij.openapi.project.ProjectManagerListener"/>
+    </projectListeners>
 </idea-plugin>
