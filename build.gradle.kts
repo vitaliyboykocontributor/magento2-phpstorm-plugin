@@ -31,6 +31,7 @@ repositories {
 
     intellijPlatform {
         defaultRepositories()
+        maven("https://www.jetbrains.com/intellij-repository/snapshots")
     }
 }
 
@@ -51,12 +52,9 @@ dependencies {
 
         bundledPlugins(providers.gradleProperty("platformBundledPlugins").map { it.split(',') })
         plugins(providers.gradleProperty("platformPlugins").map { it.split(',') })
-        plugin("com.intellij.lang.jsgraphql", "243.21565.122")
         pluginVerifier()
         zipSigner()
         testFramework(TestFrameworkType.Platform)
-
-        phpstorm("2024.3")
     }
 }
 
@@ -174,6 +172,8 @@ intellijPlatformTesting {
                         "-Dide.mac.message.dialogs.as.sheets=false",
                         "-Djb.privacy.policy.text=<!--999.999-->",
                         "-Djb.consents.confirmation.enabled=false",
+                        "-Deap.require.license=true",
+                        "-Dide.show.tips.on.startup.default.value=false"
                     )
                 }
             }
