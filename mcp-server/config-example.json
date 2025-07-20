@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "magento-server": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "-e",
+        "MCP_CLIENT_URL=http://host.docker.internal:8090",
+        "mcp/magento-server"
+      ],
+      "env": {}
+    }
+  }
+}
