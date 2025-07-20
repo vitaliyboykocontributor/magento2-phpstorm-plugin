@@ -27,7 +27,7 @@ public final class McpServerManager implements StartupActivity.DumbAware {
     @Override
     public void runActivity(@NotNull final Project project) {
         LOGGER.info("Starting MCP server for project: " + project.getName());
-        final MagentoMcpServer server = project.getService(MagentoMcpServer.class);
+        final MagentoMcpClient server = project.getService(MagentoMcpClient.class);
         
         if (server != null) {
             if (server.start()) {
@@ -47,7 +47,7 @@ public final class McpServerManager implements StartupActivity.DumbAware {
      */
     public static void stopServer(@NotNull final Project project) {
         LOGGER.info("Stopping MCP server for project: " + project.getName());
-        final MagentoMcpServer server = project.getService(MagentoMcpServer.class);
+        final MagentoMcpClient server = project.getService(MagentoMcpClient.class);
         
         if (server != null) {
             server.stop();

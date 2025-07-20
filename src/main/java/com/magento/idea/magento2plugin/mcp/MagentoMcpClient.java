@@ -16,18 +16,18 @@ import java.net.InetSocketAddress;
 import java.util.concurrent.Executors;
 
 /**
- * MCP (Model Context Protocol) server for Magento code generation.
+ * MCP (Model Context Protocol) client for Magento code generation.
  * This server allows AI agents to interact with the Magento code generation capabilities.
  */
 @Service(Service.Level.PROJECT)
-public final class MagentoMcpServer {
-    private static final Logger LOGGER = Logger.getInstance(MagentoMcpServer.class);
+public final class MagentoMcpClient {
+    private static final Logger LOGGER = Logger.getInstance(MagentoMcpClient.class);
     private static final int DEFAULT_PORT = 8090;
     private static final int DEFAULT_BACKLOG = 0;
     private static final String SERVER_NAME = "Magento MCP Server";
 
     private final Project project;
-    private HttpServer server;
+    private HttpServer client;
     private int port = DEFAULT_PORT;
     private boolean isRunning = false;
 
@@ -36,14 +36,14 @@ public final class MagentoMcpServer {
      *
      * @param project Current project
      */
-    public MagentoMcpServer(@NotNull final Project project) {
+    public MagentoMcpClient(@NotNull final Project project) {
         this.project = project;
     }
 
     /**
-     * Start the MCP server.
+     * Start the MCP client.
      *
-     * @return True if server started successfully, false otherwise
+     * @return True if client started successfully, false otherwise
      */
     public boolean start() {
         if (isRunning) {
@@ -52,16 +52,16 @@ public final class MagentoMcpServer {
         }
 
         try {
-            server = HttpServer.create(new InetSocketAddress(port), DEFAULT_BACKLOG);
+            client = HttpServer.create(new InetSocketAddress(port), DEFAULT_BACKLOG);
             
             // Register handlers for different endpoints
-            server.createContext("/mcp/module/create", new ModuleCreationHandler(project));
+            client.createContext("/mcp/module/create", new ModuleCreationHandler(project));
             
             // Set executor for handling requests
-            server.setExecutor(Executors.newCachedThreadPool());
+            client.setExecutor(Executors.newCachedThreadPool());
             
             // Start the server
-            server.start();
+            client.start();
             isRunning = true;
             
             LOGGER.info(SERVER_NAME + " started on port " + port);
@@ -73,43 +73,43 @@ public final class MagentoMcpServer {
     }
 
     /**
-     * Stop the MCP server.
+     * Stop the MCP client.
      */
     public void stop() {
-        if (!isRunning || server == null) {
+        if (!isRunning || client == null) {
             return;
         }
 
-        server.stop(0); // Stop immediately
+        client.stop(0); // Stop immediately
         isRunning = false;
         LOGGER.info(SERVER_NAME + " stopped");
     }
 
     /**
-     * Set the port for the server.
-     * Must be called before starting the server.
+     * Set the port for the client.
+     * Must be called before starting the client.
      *
      * @param port Port number
      */
     public void setPort(final int port) {
         if (isRunning) {
-            LOGGER.warn("Cannot change port while server is running");
+            LOGGER.warn("Cannot change port while client is running");
             return;
         }
         this.port = port;
     }
 
     /**
-     * Check if the server is running.
+     * Check if the client is running.
      *
-     * @return True if server is running, false otherwise
+     * @return True if client is running, false otherwise
      */
     public boolean isRunning() {
         return isRunning;
     }
 
     /**
-     * Get the port the server is running on.
+     * Get the port the client is running on.
      *
      * @return Port number
      */
