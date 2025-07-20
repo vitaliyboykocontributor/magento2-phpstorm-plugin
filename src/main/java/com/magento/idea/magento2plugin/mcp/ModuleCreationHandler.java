@@ -7,6 +7,7 @@ package com.magento.idea.magento2plugin.mcp;
 
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.psi.PsiDirectory;
@@ -127,105 +128,154 @@ public class ModuleCreationHandler implements HttpHandler {
             );
 
             if (baseDir == null) {
-                response.setMessage("Could not find base directory for vendor: " + request.getPackageName());
+                String magentoPath = com.magento.idea.magento2plugin.project.Settings.getMagentoPath(project);
+                if (magentoPath == null || magentoPath.isEmpty()) {
+                    response.setMessage("Magento path is not set in the IDE settings. Please configure the Magento path in Settings > Languages & Frameworks > PHP > Magento.");
+                } else {
+                    response.setMessage("Could not find base directory for vendor: " + request.getPackageName() + ". Magento path is set to: " + magentoPath);
+                }
                 return response;
             }
 
-            // Generate files in a write action
-            final List<String> generatedFiles = ApplicationManager.getApplication().runWriteAction(
-                (Computable<List<String>>) () -> {
-                    final List<String> files = new ArrayList<>();
-                    
+            // Use invokeAndWait to ensure the code runs on the EDT before performing write actions
+            final List<String>[] generatedFilesHolder = new List[1];
+            final Exception[] exceptionHolder = new Exception[1];
+            
+            try {
+                ApplicationManager.getApplication().invokeAndWait(() -> {
                     try {
-                        // Generate composer.json
-                        final String composerPackageName = request.getPackageName().toLowerCase() + "/" + 
-                                                          request.getModuleName().toLowerCase();
-                        final boolean createModuleDirs = true;
-                        
-                        final ModuleComposerJsonData composerData = new ModuleComposerJsonData(
-                            request.getPackageName(),
-                            request.getModuleName(),
-                            baseDir,
-                            request.getModuleDescription(),
-                            composerPackageName,
-                            request.getModuleVersion(),
-                            request.getLicenses(),
-                            request.getDependencies(),
-                            createModuleDirs
-                        );
-                        final ModuleComposerJsonGenerator composerGenerator = new ModuleComposerJsonGenerator(
-                            composerData,
-                            project
-                        );
-                        final PsiFile composerFile = composerGenerator.generate("MCP Module Creation");
-                        if (composerFile != null) {
-                            files.add(composerFile.getVirtualFile().getPath());
-                        }
+                        // Generate files in a write action
+                        generatedFilesHolder[0] = ApplicationManager.getApplication().runWriteAction(
+                            (Computable<List<String>>) () -> {
+                                final List<String> files = new ArrayList<>();
+                                
+                                try {
+                                    // Generate composer.json
+                                    final String composerPackageName = request.getPackageName().toLowerCase() + "/" + 
+                                                                      request.getModuleName().toLowerCase();
+                                    final boolean createModuleDirs = true;
+                                    
+                                    final ModuleComposerJsonData composerData = new ModuleComposerJsonData(
+                                        request.getPackageName(),
+                                        request.getModuleName(),
+                                        baseDir,
+                                        request.getModuleDescription(),
+                                        composerPackageName,
+                                        request.getModuleVersion(),
+                                        request.getLicenses(),
+                                        request.getDependencies(),
+                                        createModuleDirs
+                                    );
+                                    final ModuleComposerJsonGenerator composerGenerator = new ModuleComposerJsonGenerator(
+                                        composerData,
+                                        project
+                                    );
+                                    final PsiFile composerFile = composerGenerator.generate("MCP Module Creation");
+                                    if (composerFile != null) {
+                                        files.add(composerFile.getVirtualFile().getPath());
+                                    }
 
-                        // Generate registration.php
-                        final ModuleRegistrationPhpData registrationData = new ModuleRegistrationPhpData(
-                            request.getPackageName(),
-                            request.getModuleName(),
-                            baseDir,
-                            createModuleDirs
-                        );
-                        final ModuleRegistrationPhpGenerator registrationGenerator = new ModuleRegistrationPhpGenerator(
-                            registrationData,
-                            project
-                        );
-                        final PsiFile registrationFile = registrationGenerator.generate("MCP Module Creation");
-                        if (registrationFile != null) {
-                            files.add(registrationFile.getVirtualFile().getPath());
-                        }
+                                    // Generate registration.php
+                                    final ModuleRegistrationPhpData registrationData = new ModuleRegistrationPhpData(
+                                        request.getPackageName(),
+                                        request.getModuleName(),
+                                        baseDir,
+                                        createModuleDirs
+                                    );
+                                    final ModuleRegistrationPhpGenerator registrationGenerator = new ModuleRegistrationPhpGenerator(
+                                        registrationData,
+                                        project
+                                    );
+                                    final PsiFile registrationFile = registrationGenerator.generate("MCP Module Creation");
+                                    if (registrationFile != null) {
+                                        files.add(registrationFile.getVirtualFile().getPath());
+                                    }
 
-                        // Generate module.xml
-                        final List<String> moduleSequences = new ArrayList<>();
-                        final ModuleXmlData moduleXmlData = new ModuleXmlData(
-                            request.getPackageName(),
-                            request.getModuleName(),
-                            request.getModuleVersion(),
-                            baseDir,
-                            moduleSequences,
-                            createModuleDirs
-                        );
-                        final ModuleXmlGenerator moduleXmlGenerator = new ModuleXmlGenerator(
-                            moduleXmlData,
-                            project
-                        );
-                        final PsiFile moduleXmlFile = moduleXmlGenerator.generate("MCP Module Creation");
-                        if (moduleXmlFile != null) {
-                            files.add(moduleXmlFile.getVirtualFile().getPath());
-                        }
+                                    // Generate module.xml
+                                    final List<String> moduleSequences = new ArrayList<>();
+                                    final ModuleXmlData moduleXmlData = new ModuleXmlData(
+                                        request.getPackageName(),
+                                        request.getModuleName(),
+                                        request.getModuleVersion(),
+                                        baseDir,
+                                        moduleSequences,
+                                        createModuleDirs
+                                    );
+                                    final ModuleXmlGenerator moduleXmlGenerator = new ModuleXmlGenerator(
+                                        moduleXmlData,
+                                        project
+                                    );
+                                    final PsiFile moduleXmlFile = moduleXmlGenerator.generate("MCP Module Creation");
+                                    if (moduleXmlFile != null) {
+                                        files.add(moduleXmlFile.getVirtualFile().getPath());
+                                    }
 
-                        // Generate README.md if requested
-                        if (request.isCreateReadme()) {
-                            final ModuleReadmeMdData readmeData = new ModuleReadmeMdData(
-                                request.getPackageName(),
-                                request.getModuleName(),
-                                baseDir
-                            );
-                            final ModuleReadmeMdGenerator readmeGenerator = new ModuleReadmeMdGenerator(
-                                readmeData,
-                                project
-                            );
-                            final PsiFile readmeFile = readmeGenerator.generate("MCP Module Creation");
-                            if (readmeFile != null) {
-                                files.add(readmeFile.getVirtualFile().getPath());
+                                    // Generate README.md if requested
+                                    if (request.isCreateReadme()) {
+                                        final ModuleReadmeMdData readmeData = new ModuleReadmeMdData(
+                                            request.getPackageName(),
+                                            request.getModuleName(),
+                                            baseDir
+                                        );
+                                        final ModuleReadmeMdGenerator readmeGenerator = new ModuleReadmeMdGenerator(
+                                            readmeData,
+                                            project
+                                        );
+                                        final PsiFile readmeFile = readmeGenerator.generate("MCP Module Creation");
+                                        if (readmeFile != null) {
+                                            files.add(readmeFile.getVirtualFile().getPath());
+                                        }
+                                    }
+                                } catch (ProcessCanceledException e) {
+                                    // Must rethrow ProcessCanceledException
+                                    throw e;
+                                } catch (Exception e) {
+                                    LOGGER.error("Error generating module files: " + e.getMessage(), e);
+                                    exceptionHolder[0] = e;
+                                    // Log more detailed information for debugging
+                                    LOGGER.debug("Exception details:", e);
+                                    LOGGER.debug("Request parameters: packageName=" + request.getPackageName() 
+                                        + ", moduleName=" + request.getModuleName());
+                                }
+                                
+                                return files;
                             }
-                        }
+                        );
+                    } catch (ProcessCanceledException e) {
+                        // Must rethrow ProcessCanceledException
+                        throw e;
                     } catch (Exception e) {
-                        LOGGER.error("Error generating module files: " + e.getMessage(), e);
+                        LOGGER.error("Error in write action: " + e.getMessage(), e);
+                        exceptionHolder[0] = e;
                     }
-                    
-                    return files;
-                }
-            );
+                });
+            } catch (ProcessCanceledException e) {
+                // Must rethrow ProcessCanceledException
+                throw e;
+            } catch (Exception e) {
+                LOGGER.error("Error invoking on EDT: " + e.getMessage(), e);
+                exceptionHolder[0] = e;
+            }
 
-            response.setSuccess(!generatedFiles.isEmpty());
-            response.setGeneratedFiles(generatedFiles);
-            response.setMessage(generatedFiles.isEmpty() 
-                ? "Failed to generate module files" 
-                : "Module generated successfully");
+            final List<String> generatedFiles = generatedFilesHolder[0];
+            
+            if (exceptionHolder[0] != null) {
+                response.setMessage("Error generating module: " + exceptionHolder[0].getMessage());
+                return response;
+            }
+
+            if (generatedFiles == null || generatedFiles.isEmpty()) {
+                if (exceptionHolder[0] != null) {
+                    // Include the specific exception message in the response
+                    response.setMessage("Failed to generate module files: " + exceptionHolder[0].getMessage());
+                } else {
+                    response.setMessage("Failed to generate module files. Check IDE logs for details.");
+                }
+            } else {
+                response.setSuccess(true);
+                response.setGeneratedFiles(generatedFiles);
+                response.setMessage("Module generated successfully");
+            }
         } catch (Exception e) {
             LOGGER.error("Error generating module: " + e.getMessage(), e);
             response.setMessage("Error generating module: " + e.getMessage());

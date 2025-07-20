@@ -21,7 +21,6 @@ import dotenv from 'dotenv';
 import { z } from 'zod';
 import { createModuleHandler } from './handlers/createModule';
 
-// Load environment variables from .env file
 dotenv.config();
 
 // Configure logging - redirect all logs to stderr to avoid interfering with JSON-RPC communication on stdout
@@ -101,7 +100,8 @@ server.registerTool(
 
 // Log server configuration
 logger.info('Starting Magento MCP Server with configuration:', {
-  mcpClientUrl: process.env.MCP_CLIENT_URL || 'http://localhost:8090',
+  // Using explicit IPv4 address (127.0.0.1) instead of localhost to avoid IPv6 resolution issues
+  mcpClientUrl: process.env.MCP_CLIENT_URL || 'http://127.0.0.1:8090',
   port: process.env.PORT || '3000',
   logLevel
 });

@@ -40,7 +40,8 @@ export async function createModuleHandler(params: ModuleCreationParams): Promise
   }
 
   // Get MCP client URL from environment variable or use default
-  const mcpClientUrl = process.env.MCP_CLIENT_URL || 'http://localhost:8090';
+  // Using explicit IPv4 address (127.0.0.1) instead of localhost to avoid IPv6 resolution issues
+  const mcpClientUrl = process.env.MCP_CLIENT_URL || 'http://127.0.0.1:8090';
   const endpoint = `${mcpClientUrl}/mcp/module/create`;
 
   try {

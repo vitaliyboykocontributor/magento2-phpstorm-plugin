@@ -47,7 +47,8 @@ EXPOSE 3000
 
 # Set environment variables
 ENV NODE_ENV=production
-ENV MCP_CLIENT_URL=http://localhost:8090
+# Using explicit IPv4 address (127.0.0.1) instead of localhost to avoid IPv6 resolution issues
+ENV MCP_CLIENT_URL=http://127.0.0.1:8090
 ENV LOG_LEVEL=info
 
 # Start the server

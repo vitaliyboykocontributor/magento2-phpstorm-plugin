@@ -40,15 +40,15 @@ public final class McpPathUtil {
             final @NotNull String vendorName
     ) {
         final String magentoPath = Settings.getMagentoPath(project);
-        if (magentoPath == null) {
+        if (magentoPath == null || magentoPath.isEmpty()) {
             LOGGER.warn("Magento path not found in project settings");
-            return null;
+            throw new IllegalStateException("Magento path is not set in the IDE settings. Please configure the Magento path in Settings > Languages & Frameworks > PHP > Magento.");
         }
 
         // Check if Magento path is valid
         if (!MagentoBasePathUtil.isMagentoFolderValid(magentoPath)) {
             LOGGER.warn("Invalid Magento path: " + magentoPath);
-            return null;
+            throw new IllegalStateException("Invalid Magento path: " + magentoPath + ". Please ensure the path points to a valid Magento installation.");
         }
 
         // Find app/code directory
