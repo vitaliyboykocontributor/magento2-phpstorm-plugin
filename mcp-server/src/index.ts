@@ -20,6 +20,7 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import dotenv from 'dotenv';
 import { z } from 'zod';
 import { createModuleHandler } from './handlers/createModule';
+import { createEntityHandler } from './handlers/createEntity';
 
 dotenv.config();
 
@@ -81,6 +82,77 @@ server.registerTool(
       };
     } catch (error: unknown) {
       logger.error('Error in magento_create_module handler:', error);
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({
+              success: false,
+              message: error instanceof Error ? error.message : 'Unknown error occurred',
+              generatedFiles: []
+            })
+          }
+        ],
+        isError: true
+      };
+    }
+  }
+);
+
+// Register the magento_create_entity tool
+server.registerTool(
+  'magento_create_entity',
+  {
+    title: 'Create Magento Entity',
+    description: 'Creates a new Magento entity with model, resource model, collection, controllers, and admin UI components',
+    inputSchema: {
+      moduleName: z.string().describe('The module name in Vendor_ModuleName format (e.g., "Vendor_Module")'),
+      entityName: z.string().describe('The entity name (e.g., "Product")'),
+      tableName: z.string().optional().describe('The database table name (auto-generated if not provided)'),
+      idFieldName: z.string().optional().describe('The ID field name (auto-generated if not provided)'),
+      tableEngine: z.string().optional().describe('Database table engine (default: "innodb")'),
+      tableResource: z.string().optional().describe('Database table resource (default: "default")'),
+      hasAdminUiComponents: z.boolean().optional().describe('Whether to generate admin UI components (default: true)'),
+      hasDtoInterface: z.boolean().optional().describe('Whether to generate DTO interface (default: true)'),
+      hasWebApi: z.boolean().optional().describe('Whether to generate Web API (default: false)'),
+      route: z.string().optional().describe('Admin route for the entity (auto-generated if not provided)'),
+      formLabel: z.string().optional().describe('Admin form label (auto-generated if not provided)'),
+      formName: z.string().optional().describe('Admin form name (auto-generated if not provided)'),
+      gridName: z.string().optional().describe('Admin grid name (auto-generated if not provided)'),
+      hasToolbar: z.boolean().optional().describe('Whether to generate toolbar (default: true)'),
+      hasToolbarBookmarks: z.boolean().optional().describe('Whether to generate toolbar bookmarks (default: true)'),
+      hasToolbarColumnsControl: z.boolean().optional().describe('Whether to generate columns control (default: true)'),
+      hasToolbarListingFilters: z.boolean().optional().describe('Whether to generate listing filters (default: true)'),
+      hasToolbarListingPaging: z.boolean().optional().describe('Whether to generate listing paging (default: true)'),
+      parentAclId: z.string().optional().describe('Parent ACL resource ID (optional)'),
+      aclId: z.string().optional().describe('ACL resource ID (auto-generated if not provided)'),
+      aclTitle: z.string().optional().describe('ACL resource title (auto-generated if not provided)'),
+      parentMenuId: z.string().optional().describe('Parent menu ID (optional)'),
+      menuSortOrder: z.number().optional().describe('Menu sort order (default: 100)'),
+      menuId: z.string().optional().describe('Menu ID (auto-generated if not provided)'),
+      menuTitle: z.string().optional().describe('Menu title (auto-generated if not provided)'),
+      properties: z.array(z.object({
+        name: z.string().describe('Property name'),
+        type: z.string().describe('Property type (e.g., "varchar", "int", "text", "datetime")')
+      })).optional().describe('Additional entity properties/fields')
+    }
+  },
+  async (params: any) => {
+    logger.info('Handling magento_create_entity request with params:', params);
+    try {
+      // Call the createEntityHandler with the provided parameters
+      const result = await createEntityHandler(params);
+      logger.info('Entity creation completed:', result);
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(result)
+          }
+        ]
+      };
+    } catch (error: unknown) {
+      logger.error('Error in magento_create_entity handler:', error);
       return {
         content: [
           {

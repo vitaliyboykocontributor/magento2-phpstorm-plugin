@@ -11,6 +11,9 @@ import com.intellij.openapi.project.Project;
 import com.sun.net.httpserver.HttpServer;
 import org.jetbrains.annotations.NotNull;
 
+// MCP Handlers
+import com.magento.idea.magento2plugin.mcp.EntityCreationHandler;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.concurrent.Executors;
@@ -56,6 +59,7 @@ public final class MagentoMcpClient {
             
             // Register handlers for different endpoints
             client.createContext("/mcp/module/create", new ModuleCreationHandler(project));
+            client.createContext("/mcp/entity/create", new EntityCreationHandler(project));
             
             // Set executor for handling requests
             client.setExecutor(Executors.newCachedThreadPool());

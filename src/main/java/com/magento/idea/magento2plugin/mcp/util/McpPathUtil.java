@@ -82,6 +82,76 @@ public final class McpPathUtil {
     }
 
     /**
+     * Find module directory by module name (in Vendor_ModuleName format).
+     *
+     * @param project Project
+     * @param moduleName Module name in Vendor_ModuleName format
+     * @return Module directory or null if not found
+     */
+    @Nullable
+    public static PsiDirectory findModuleDirectory(
+            final @NotNull Project project,
+            final @NotNull String moduleName
+    ) {
+        final String magentoPath = Settings.getMagentoPath(project);
+        if (magentoPath == null || magentoPath.isEmpty()) {
+            LOGGER.warn("Magento path not found in project settings");
+            return null;
+        }
+
+        // Check if Magento path is valid
+        if (!MagentoBasePathUtil.isMagentoFolderValid(magentoPath)) {
+            LOGGER.warn("Invalid Magento path: " + magentoPath);
+            return null;
+        }
+
+        // Parse module name to extract vendor and module parts
+        final String[] parts = moduleName.split("_", 2);
+        if (parts.length != 2) {
+            LOGGER.warn("Invalid module name format. Expected Vendor_ModuleName, got: " + moduleName);
+            return null;
+        }
+
+        final String vendorName = parts[0];
+        final String moduleNamePart = parts[1];
+
+        // Find app/code directory
+        final VirtualFile magentoRoot = LocalFileSystem.getInstance().findFileByPath(magentoPath);
+        if (magentoRoot == null) {
+            LOGGER.warn("Magento root directory not found: " + magentoPath);
+            return null;
+        }
+
+        final VirtualFile appDir = magentoRoot.findChild("app");
+        if (appDir == null || !appDir.isDirectory()) {
+            LOGGER.warn("app directory not found in Magento root");
+            return null;
+        }
+
+        final VirtualFile codeDir = appDir.findChild("code");
+        if (codeDir == null || !codeDir.isDirectory()) {
+            LOGGER.warn("code directory not found in app directory");
+            return null;
+        }
+
+        // Find vendor directory
+        final VirtualFile vendorDir = codeDir.findChild(vendorName);
+        if (vendorDir == null || !vendorDir.isDirectory()) {
+            LOGGER.warn("Vendor directory not found: " + vendorName);
+            return null;
+        }
+
+        // Find module directory
+        final VirtualFile moduleDir = vendorDir.findChild(moduleNamePart);
+        if (moduleDir == null || !moduleDir.isDirectory()) {
+            LOGGER.warn("Module directory not found: " + moduleNamePart + " in vendor " + vendorName);
+            return null;
+        }
+
+        return PsiManager.getInstance(project).findDirectory(moduleDir);
+    }
+
+    /**
      * Get the path to the app/code directory.
      *
      * @param project Project
