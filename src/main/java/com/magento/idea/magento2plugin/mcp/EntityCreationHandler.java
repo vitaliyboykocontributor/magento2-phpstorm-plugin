@@ -171,9 +171,9 @@ public class EntityCreationHandler implements HttpHandler {
                                 try {
                                     // Convert EntityCreationRequest to NewEntityDialogData
                                     final NewEntityDialogData dialogData = convertToNewEntityDialogData(request);
-                                    
+                    
                                     // Create EntityCreatorContextData using the same logic as NewEntityDialog
-                                    final EntityCreatorContextData context = createEntityCreatorContextData(dialogData, request.getModuleName());
+                                    final EntityCreatorContextData context = createEntityCreatorContextData(dialogData, request.getModuleName(), request);
                                     
                                     // Set up generation context
                                     final EntityCreatorContext generationContext = new EntityCreatorContext();
@@ -310,9 +310,10 @@ public class EntityCreationHandler implements HttpHandler {
      *
      * @param dialogData NewEntityDialogData
      * @param moduleName Module name from the original request
+     * @param request EntityCreationRequest
      * @return EntityCreatorContextData
      */
-    private EntityCreatorContextData createEntityCreatorContextData(final NewEntityDialogData dialogData, final String moduleName) {
+    private EntityCreatorContextData createEntityCreatorContextData(final NewEntityDialogData dialogData, final String moduleName, final EntityCreationRequest request) {
         final String entityName = dialogData.getEntityName();
         final String dtoModelSuffix = "Data";
         final String dtoInterfaceSuffix = "Interface";
@@ -351,7 +352,7 @@ public class EntityCreationHandler implements HttpHandler {
                 dtoInterfaceNamespace,
                 formViewNamespaceBuilder,
                 new com.magento.idea.magento2plugin.magento.files.actions.NewActionFile(moduleName, entityName).getNamespaceBuilder(),
-                createEntityProperties(dialogData),
+                createEntityProperties(dialogData, request),
                 createButtons(dialogData, moduleName),
                 createFieldSets(),
                 createFields(dialogData)
@@ -359,30 +360,35 @@ public class EntityCreationHandler implements HttpHandler {
     }
 
     /**
-     * Create entity properties list.
+     * Create entity properties list using the same logic as NewEntityDialog.
      *
      * @param dialogData NewEntityDialogData
+     * @param request EntityCreationRequest
      * @return List of entity properties
      */
-    private java.util.List<java.util.Map<String, String>> createEntityProperties(final NewEntityDialogData dialogData) {
-        // Create basic entity properties including ID field
-        final java.util.List<java.util.Map<String, String>> properties = new java.util.ArrayList<>();
+    private java.util.List<java.util.Map<String, String>> createEntityProperties(final NewEntityDialogData dialogData, final EntityCreationRequest request) {
+        // Create short properties list from the EntityCreationRequest
+        final java.util.List<java.util.Map<String, String>> shortProperties = new java.util.ArrayList<>();
         
-        // Add ID field as first property
-        final java.util.Map<String, String> idProperty = new java.util.HashMap<>();
-        idProperty.put("name", dialogData.getIdFieldName());
-        idProperty.put("type", "int");
-        idProperty.put("nullable", "false");
-        idProperty.put("identity", "true");
-        idProperty.put("unsigned", "true");
-        idProperty.put("comment", "Entity ID");
-        properties.add(idProperty);
+        // Convert EntityPropertyData to the format expected by DbSchemaGeneratorUtil
+        for (final EntityPropertyData property : request.getProperties()) {
+            final java.util.Map<String, String> shortProperty = new java.util.HashMap<>();
+            shortProperty.put("Name", property.getName());
+            shortProperty.put("Type", property.getType());
+            shortProperties.add(shortProperty);
+        }
         
-        // Add other properties from the formatted properties string
-        // The properties string contains formatted property data that we need to parse
-        // For now, we'll create a minimal set that should work
+        // Use DbSchemaGeneratorUtil to complement properties with proper database column metadata
+        final java.util.List<java.util.Map<String, String>> complementedProperties = 
+                com.magento.idea.magento2plugin.actions.generation.generator.util.DbSchemaGeneratorUtil
+                        .complementShortPropertiesByDefaults(shortProperties);
         
-        return properties;
+        // Add the identity column at the beginning (same as NewEntityDialog)
+        complementedProperties.add(0, 
+                com.magento.idea.magento2plugin.actions.generation.generator.util.DbSchemaGeneratorUtil
+                        .getTableIdentityColumnData(dialogData.getIdFieldName()));
+        
+        return complementedProperties;
     }
 
     /**

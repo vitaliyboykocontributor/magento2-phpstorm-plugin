@@ -3,7 +3,7 @@ import fetch from 'node-fetch';
 // Define the interface for entity property data
 interface EntityProperty {
   name: string;
-  type: string;  // int, varchar, text, datetime, etc.
+  type: string;  // Valid types: "int", "float", "string", "bool", "array"
 }
 
 // Define the interface for entity creation request parameters
@@ -45,8 +45,10 @@ interface EntityCreationParams {
   menuId?: string;
   menuTitle?: string;
   
-  // Entity properties (custom fields)
-  properties?: EntityProperty[];
+  // Entity properties (custom fields) - supports both formats:
+  // 1. Array format: [{ name: "field_name", type: "string" }, ...]
+  // 2. String format: "field_name:string,other_field:int,..."
+  properties?: EntityProperty[] | string;
 }
 
 // Define the interface for entity creation response
@@ -54,6 +56,48 @@ interface EntityCreationResponse {
   success: boolean;
   message: string;
   generatedFiles: string[];
+}
+
+/**
+ * Parse properties from string format to array format
+ * Converts "name:type,name:type" to [{ name: "name", type: "type" }, ...]
+ * 
+ * @param properties Properties in string or array format
+ * @returns Properties in array format
+ */
+function parseProperties(properties?: EntityProperty[] | string): EntityProperty[] {
+  if (!properties) {
+    return [];
+  }
+  
+  // If already array format, return as-is
+  if (Array.isArray(properties)) {
+    return properties;
+  }
+  
+  // Parse string format: "name:type,name:type,..."
+  if (typeof properties === 'string') {
+    const propertyPairs = properties.split(',').map(pair => pair.trim()).filter(pair => pair.length > 0);
+    const parsedProperties: EntityProperty[] = [];
+    
+    for (const pair of propertyPairs) {
+      const [name, type] = pair.split(':').map(part => part.trim());
+      if (name && type) {
+        // Validate type is supported
+        const validTypes = ['int', 'float', 'string', 'bool', 'array'];
+        if (!validTypes.includes(type)) {
+          throw new Error(`Invalid property type "${type}". Valid types are: ${validTypes.join(', ')}`);
+        }
+        parsedProperties.push({ name, type });
+      } else {
+        throw new Error(`Invalid property format "${pair}". Expected format: "name:type"`);
+      }
+    }
+    
+    return parsedProperties;
+  }
+  
+  return [];
 }
 
 /**
@@ -145,6 +189,9 @@ export async function createEntityHandler(params: EntityCreationParams): Promise
     throw new Error('ID field name is required');
   }
 
+  // Parse and validate properties
+  const parsedProperties = parseProperties(params.properties);
+
   // Auto-complete identifiers
   const completedParams = autoCompleteIdentifiers(params);
 
@@ -175,7 +222,7 @@ export async function createEntityHandler(params: EntityCreationParams): Promise
     menuSortOrder: completedParams.menuSortOrder || 100,
     menuId: completedParams.menuId,
     menuTitle: completedParams.menuTitle,
-    properties: completedParams.properties || []
+    properties: parsedProperties
   };
 
   // Get MCP client URL from environment variable or use default

@@ -131,10 +131,13 @@ server.registerTool(
       menuSortOrder: z.number().optional().describe('Menu sort order (default: 100)'),
       menuId: z.string().optional().describe('Menu ID (auto-generated if not provided)'),
       menuTitle: z.string().optional().describe('Menu title (auto-generated if not provided)'),
-      properties: z.array(z.object({
-        name: z.string().describe('Property name'),
-        type: z.string().describe('Property type (e.g., "varchar", "int", "text", "datetime")')
-      })).optional().describe('Additional entity properties/fields')
+      properties: z.union([
+        z.string().describe('Entity properties in string format: "name:type,name:type,..." (e.g., "ip_address:string,port:int,is_active:bool")'),
+        z.array(z.object({
+          name: z.string().describe('Property name'),
+          type: z.string().describe('Property type - valid types: "int", "float", "string", "bool", "array"')
+        }))
+      ]).optional().describe('Additional entity properties/fields. Supports two formats:\n1. String format: "field_name:type,another_field:type" (e.g., "ip_address:string,number_of_calls:int,route:string")\n2. Array format: [{"name": "field_name", "type": "string"}, {"name": "another_field", "type": "int"}]\nValid types: "int", "float", "string", "bool", "array"')
     }
   },
   async (params: any) => {
