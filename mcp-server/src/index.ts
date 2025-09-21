@@ -21,6 +21,7 @@ import dotenv from 'dotenv';
 import { z } from 'zod';
 import { createModuleHandler } from './handlers/createModule';
 import { createEntityHandler } from './handlers/createEntity';
+import { createDataModelHandler } from './handlers/createDataModel';
 
 dotenv.config();
 
@@ -156,6 +157,58 @@ server.registerTool(
       };
     } catch (error: unknown) {
       logger.error('Error in magento_create_entity handler:', error);
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({
+              success: false,
+              message: error instanceof Error ? error.message : 'Unknown error occurred',
+              generatedFiles: []
+            })
+          }
+        ],
+        isError: true
+      };
+    }
+  }
+);
+
+// Register the magento_create_data_model tool
+server.registerTool(
+  'magento_create_data_model',
+  {
+    title: 'Create Magento Data Model',
+    description: 'Creates a new Magento data model (DTO) with optional interface and DI preference',
+    inputSchema: {
+      moduleName: z.string().describe('The module name in Vendor_ModuleName format (e.g., "Vendor_Module")'),
+      modelName: z.string().describe('The data model name (e.g., "Product")'),
+      createInterface: z.boolean().optional().describe('Whether to create interface and DI preference (default: false)'),
+      properties: z.union([
+        z.string().describe('Data model properties in string format: "name:type,name:type,..." (e.g., "name:string,age:int,is_active:bool")'),
+        z.array(z.object({
+          name: z.string().describe('Property name (must be in lower_snake_case format)'),
+          type: z.string().describe('Property type - valid types: "int", "float", "string", "bool", "array"')
+        }))
+      ]).describe('Data model properties/fields. At least one property is required. Supports two formats:\n1. String format: "field_name:type,another_field:type" (e.g., "user_name:string,user_age:int,is_active:bool")\n2. Array format: [{"name": "field_name", "type": "string"}, {"name": "another_field", "type": "int"}]\nValid types: "int", "float", "string", "bool", "array"\nProperty names must be in lower_snake_case format.')
+    }
+  },
+  async (params: any) => {
+    logger.info('Handling magento_create_data_model request with params:', params);
+    try {
+      // Call the createDataModelHandler with the provided parameters
+      const result = await createDataModelHandler(params);
+      logger.info('Data model creation completed:', result);
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(result)
+          }
+        ]
+      };
+    } catch (error: unknown) {
+      logger.error('Error in magento_create_data_model handler:', error);
       return {
         content: [
           {
