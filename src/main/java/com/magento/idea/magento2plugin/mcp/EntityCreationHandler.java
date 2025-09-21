@@ -23,6 +23,7 @@ import com.magento.idea.magento2plugin.mcp.model.EntityCreationResponse;
 import com.magento.idea.magento2plugin.mcp.model.EntityPropertyData;
 import com.magento.idea.magento2plugin.mcp.util.JsonUtil;
 import com.magento.idea.magento2plugin.mcp.util.McpPathUtil;
+import com.magento.idea.magento2plugin.mcp.util.PropertyParsingUtil;
 import com.magento.idea.magento2plugin.util.magento.GetModuleNameByDirectoryUtil;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
@@ -361,22 +362,15 @@ public class EntityCreationHandler implements HttpHandler {
 
     /**
      * Create entity properties list using the same logic as NewEntityDialog.
+     * Parse the formatted properties string from dialogData instead of bypassing it.
      *
      * @param dialogData NewEntityDialogData
      * @param request EntityCreationRequest
      * @return List of entity properties
      */
     private java.util.List<java.util.Map<String, String>> createEntityProperties(final NewEntityDialogData dialogData, final EntityCreationRequest request) {
-        // Create short properties list from the EntityCreationRequest
-        final java.util.List<java.util.Map<String, String>> shortProperties = new java.util.ArrayList<>();
-        
-        // Convert EntityPropertyData to the format expected by DbSchemaGeneratorUtil
-        for (final EntityPropertyData property : request.getProperties()) {
-            final java.util.Map<String, String> shortProperty = new java.util.HashMap<>();
-            shortProperty.put("Name", property.getName());
-            shortProperty.put("Type", property.getType());
-            shortProperties.add(shortProperty);
-        }
+        // Parse the formatted properties string from dialogData back to short properties format
+        final java.util.List<java.util.Map<String, String>> shortProperties = PropertyParsingUtil.parseFormattedPropertiesString(dialogData.getProperties());
         
         // Use DbSchemaGeneratorUtil to complement properties with proper database column metadata
         final java.util.List<java.util.Map<String, String>> complementedProperties = 
