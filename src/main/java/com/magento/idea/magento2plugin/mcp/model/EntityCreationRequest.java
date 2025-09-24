@@ -50,7 +50,7 @@ public class EntityCreationRequest {
     private String menuTitle;
     
     // Entity properties (custom fields)
-    private List<EntityPropertyData> properties = new ArrayList<>();
+    private List<PropertyData> properties = new ArrayList<>();
 
     /**
      * Get module name.
@@ -507,7 +507,7 @@ public class EntityCreationRequest {
      *
      * @return Entity properties
      */
-    public List<EntityPropertyData> getProperties() {
+    public List<PropertyData> getProperties() {
         return properties;
     }
 
@@ -516,7 +516,7 @@ public class EntityCreationRequest {
      *
      * @param properties Entity properties
      */
-    public void setProperties(final List<EntityPropertyData> properties) {
+    public void setProperties(final List<PropertyData> properties) {
         this.properties = properties != null ? properties : new ArrayList<>();
     }
 }

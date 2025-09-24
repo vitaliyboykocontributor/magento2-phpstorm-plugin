@@ -1,31 +1,26 @@
-/*
- * Copyright © Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
- */
-
 package com.magento.idea.magento2plugin.mcp.model;
 
+
 /**
- * Data model for entity property.
+ * Property data class.
  */
-public class EntityPropertyData {
+public class PropertyData {
     private String name;
     private String type;
 
     /**
      * Default constructor.
      */
-    public EntityPropertyData() {
-        // Empty constructor for JSON deserialization
+    public PropertyData() {
     }
 
     /**
-     * Constructor with parameters.
+     * Constructor.
      *
      * @param name Property name
      * @param type Property type
      */
-    public EntityPropertyData(final String name, final String type) {
+    public PropertyData(final String name, final String type) {
         this.name = name;
         this.type = type;
     }

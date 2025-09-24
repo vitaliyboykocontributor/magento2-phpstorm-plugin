@@ -20,14 +20,15 @@ import com.magento.idea.magento2plugin.actions.generation.context.EntityCreatorC
 import com.magento.idea.magento2plugin.actions.generation.util.GenerationContextRegistry;
 import com.magento.idea.magento2plugin.mcp.model.EntityCreationRequest;
 import com.magento.idea.magento2plugin.mcp.model.EntityCreationResponse;
-import com.magento.idea.magento2plugin.mcp.model.EntityPropertyData;
+import com.magento.idea.magento2plugin.mcp.model.PropertyData;
 import com.magento.idea.magento2plugin.mcp.util.JsonUtil;
 import com.magento.idea.magento2plugin.mcp.util.McpPathUtil;
 import com.magento.idea.magento2plugin.mcp.util.PropertyParsingUtil;
-import com.magento.idea.magento2plugin.util.magento.GetModuleNameByDirectoryUtil;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import org.jetbrains.annotations.NotNull;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -64,6 +65,49 @@ public class EntityCreationHandler implements HttpHandler {
             final InputStream requestBody = exchange.getRequestBody();
             final String requestString = new String(requestBody.readAllBytes(), StandardCharsets.UTF_8);
             final EntityCreationRequest request = JsonUtil.fromJson(requestString, EntityCreationRequest.class);
+
+            final JSONObject jsonObject = new JSONObject(requestString);
+            // Convert properties from EntityPropertyData to the string format expected by NewEntityDialogData
+            // Parse properties field (handle both string and array formats)
+            if (jsonObject.has("properties")) {
+                final Object propertiesValue = jsonObject.get("properties");
+                final List<PropertyData> properties = new ArrayList<>();
+
+                if (propertiesValue instanceof String) {
+                    // Handle string format: "name:type,name:type,..."
+                    final String propertiesString = (String) propertiesValue;
+                    final String[] propertyPairs = propertiesString.split(",");
+
+                    for (final String pair : propertyPairs) {
+                        final String trimmedPair = pair.trim();
+                        if (!trimmedPair.isEmpty()) {
+                            final String[] parts = trimmedPair.split(":");
+                            if (parts.length == 2) {
+                                final String name = parts[0].trim();
+                                final String type = parts[1].trim();
+                                properties.add(new PropertyData(name, type));
+                            }
+                        }
+                    }
+                } else if (propertiesValue instanceof JSONArray) {
+                    // Handle array format: [{"name": "field_name", "type": "string"}, ...]
+                    final JSONArray propertiesArray = (JSONArray) propertiesValue;
+
+                    for (int i = 0; i < propertiesArray.length(); i++) {
+                        final Object item = propertiesArray.get(i);
+                        if (item instanceof JSONObject) {
+                            final JSONObject propertyObj = (JSONObject) item;
+                            if (propertyObj.has("name") && propertyObj.has("type")) {
+                                final String name = propertyObj.getString("name");
+                                final String type = propertyObj.getString("type");
+                                properties.add(new PropertyData(name, type));
+                            }
+                        }
+                    }
+                }
+
+                request.setProperties(properties);
+            }
 
             if (request == null) {
                 sendResponse(exchange, 400, "Invalid request format");
@@ -268,7 +312,7 @@ public class EntityCreationHandler implements HttpHandler {
     private NewEntityDialogData convertToNewEntityDialogData(final EntityCreationRequest request) {
         // Convert properties from EntityPropertyData to the string format expected by NewEntityDialogData
         final List<String> formattedProperties = new ArrayList<>();
-        for (final EntityPropertyData property : request.getProperties()) {
+        for (final PropertyData property : request.getProperties()) {
             final String formatted = ClassPropertyFormatterUtil.formatSingleProperty(
                 property.getName(), 
                 property.getType()

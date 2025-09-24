@@ -25,6 +25,7 @@ import com.magento.idea.magento2plugin.magento.files.DataModelFile;
 import com.magento.idea.magento2plugin.magento.files.DataModelInterfaceFile;
 import com.magento.idea.magento2plugin.mcp.model.DataModelCreationRequest;
 import com.magento.idea.magento2plugin.mcp.model.DataModelCreationResponse;
+import com.magento.idea.magento2plugin.mcp.model.PropertyData;
 import com.magento.idea.magento2plugin.mcp.util.JsonUtil;
 import com.magento.idea.magento2plugin.mcp.util.McpPathUtil;
 import com.sun.net.httpserver.HttpExchange;
@@ -119,7 +120,7 @@ public class DataModelCreationHandler implements HttpHandler {
             // Parse properties field (handle both string and array formats)
             if (jsonObject.has("properties")) {
                 final Object propertiesValue = jsonObject.get("properties");
-                final List<DataModelCreationRequest.PropertyData> properties = new ArrayList<>();
+                final List<PropertyData> properties = new ArrayList<>();
                 
                 if (propertiesValue instanceof String) {
                     // Handle string format: "name:type,name:type,..."
@@ -133,7 +134,7 @@ public class DataModelCreationHandler implements HttpHandler {
                             if (parts.length == 2) {
                                 final String name = parts[0].trim();
                                 final String type = parts[1].trim();
-                                properties.add(new DataModelCreationRequest.PropertyData(name, type));
+                                properties.add(new PropertyData(name, type));
                             }
                         }
                     }
@@ -148,7 +149,7 @@ public class DataModelCreationHandler implements HttpHandler {
                             if (propertyObj.has("name") && propertyObj.has("type")) {
                                 final String name = propertyObj.getString("name");
                                 final String type = propertyObj.getString("type");
-                                properties.add(new DataModelCreationRequest.PropertyData(name, type));
+                                properties.add(new PropertyData(name, type));
                             }
                         }
                     }
@@ -183,7 +184,7 @@ public class DataModelCreationHandler implements HttpHandler {
         
         // Validate property names (lower_snake_case pattern)
         final String lowerSnakeCasePattern = "^[a-z][a-z0-9]*(_[a-z0-9]+)*$";
-        for (final DataModelCreationRequest.PropertyData property : request.getProperties()) {
+        for (final PropertyData property : request.getProperties()) {
             if (property.getName() == null || property.getName().trim().isEmpty()) {
                 return "Property name cannot be empty";
             }
@@ -232,7 +233,7 @@ public class DataModelCreationHandler implements HttpHandler {
                                 try {
                                     // Format properties using ClassPropertyFormatterUtil
                                     final List<String> formattedProperties = new ArrayList<>();
-                                    for (final DataModelCreationRequest.PropertyData property : request.getProperties()) {
+                                    for (final PropertyData property : request.getProperties()) {
                                         final String formatted = ClassPropertyFormatterUtil.formatSingleProperty(
                                             property.getName(),
                                             property.getType()
