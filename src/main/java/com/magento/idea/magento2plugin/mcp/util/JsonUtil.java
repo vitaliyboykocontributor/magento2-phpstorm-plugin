@@ -6,6 +6,7 @@
 package com.magento.idea.magento2plugin.mcp.util;
 
 import com.intellij.openapi.diagnostic.Logger;
+import com.magento.idea.magento2plugin.mcp.model.PropertyData;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -119,5 +120,49 @@ public final class JsonUtil {
             LOGGER.error("Error converting JSON to object: " + e.getMessage(), e);
             return null;
         }
+    }
+
+    public static List<PropertyData> parseProperties(JSONObject jsonObject) {
+        // Parse properties field (handle both string and array formats)
+        if (jsonObject.has("properties")) {
+            final Object propertiesValue = jsonObject.get("properties");
+            final List<PropertyData> properties = new ArrayList<>();
+
+            if (propertiesValue instanceof String) {
+                // Handle string format: "name:type,name:type,..."
+                final String propertiesString = (String) propertiesValue;
+                final String[] propertyPairs = propertiesString.split(",");
+
+                for (final String pair : propertyPairs) {
+                    final String trimmedPair = pair.trim();
+                    if (!trimmedPair.isEmpty()) {
+                        final String[] parts = trimmedPair.split(":");
+                        if (parts.length == 2) {
+                            final String name = parts[0].trim();
+                            final String type = parts[1].trim();
+                            properties.add(new PropertyData(name, type));
+                        }
+                    }
+                }
+            } else if (propertiesValue instanceof JSONArray) {
+                // Handle array format: [{"name": "field_name", "type": "string"}, ...]
+                final JSONArray propertiesArray = (JSONArray) propertiesValue;
+
+                for (int i = 0; i < propertiesArray.length(); i++) {
+                    final Object item = propertiesArray.get(i);
+                    if (item instanceof JSONObject) {
+                        final JSONObject propertyObj = (JSONObject) item;
+                        if (propertyObj.has("name") && propertyObj.has("type")) {
+                            final String name = propertyObj.getString("name");
+                            final String type = propertyObj.getString("type");
+                            properties.add(new PropertyData(name, type));
+                        }
+                    }
+                }
+            }
+
+            return properties;
+        }
+        return null;
     }
 }

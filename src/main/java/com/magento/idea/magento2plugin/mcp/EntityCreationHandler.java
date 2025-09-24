@@ -65,54 +65,12 @@ public class EntityCreationHandler implements HttpHandler {
             final InputStream requestBody = exchange.getRequestBody();
             final String requestString = new String(requestBody.readAllBytes(), StandardCharsets.UTF_8);
             final EntityCreationRequest request = JsonUtil.fromJson(requestString, EntityCreationRequest.class);
-
-            final JSONObject jsonObject = new JSONObject(requestString);
-            // Convert properties from EntityPropertyData to the string format expected by NewEntityDialogData
-            // Parse properties field (handle both string and array formats)
-            if (jsonObject.has("properties")) {
-                final Object propertiesValue = jsonObject.get("properties");
-                final List<PropertyData> properties = new ArrayList<>();
-
-                if (propertiesValue instanceof String) {
-                    // Handle string format: "name:type,name:type,..."
-                    final String propertiesString = (String) propertiesValue;
-                    final String[] propertyPairs = propertiesString.split(",");
-
-                    for (final String pair : propertyPairs) {
-                        final String trimmedPair = pair.trim();
-                        if (!trimmedPair.isEmpty()) {
-                            final String[] parts = trimmedPair.split(":");
-                            if (parts.length == 2) {
-                                final String name = parts[0].trim();
-                                final String type = parts[1].trim();
-                                properties.add(new PropertyData(name, type));
-                            }
-                        }
-                    }
-                } else if (propertiesValue instanceof JSONArray) {
-                    // Handle array format: [{"name": "field_name", "type": "string"}, ...]
-                    final JSONArray propertiesArray = (JSONArray) propertiesValue;
-
-                    for (int i = 0; i < propertiesArray.length(); i++) {
-                        final Object item = propertiesArray.get(i);
-                        if (item instanceof JSONObject) {
-                            final JSONObject propertyObj = (JSONObject) item;
-                            if (propertyObj.has("name") && propertyObj.has("type")) {
-                                final String name = propertyObj.getString("name");
-                                final String type = propertyObj.getString("type");
-                                properties.add(new PropertyData(name, type));
-                            }
-                        }
-                    }
-                }
-
-                request.setProperties(properties);
-            }
-
             if (request == null) {
                 sendResponse(exchange, 400, "Invalid request format");
                 return;
             }
+            final JSONObject jsonObject = new JSONObject(requestString);
+            request.setProperties(JsonUtil.parseProperties(jsonObject));
 
             // Validate request
             final String validationError = validateRequest(request);
