@@ -355,36 +355,11 @@ public class EntityCreationHandler implements HttpHandler {
                 dtoInterfaceNamespace,
                 formViewNamespaceBuilder,
                 new com.magento.idea.magento2plugin.magento.files.actions.NewActionFile(moduleName, entityName).getNamespaceBuilder(),
-                createEntityProperties(dialogData, request),
+                PropertyParsingUtil.parseFormattedPropertiesString(dialogData.getProperties()),
                 createButtons(dialogData, moduleName),
                 createFieldSets(),
                 createFields(dialogData)
         );
-    }
-
-    /**
-     * Create entity properties list using the same logic as NewEntityDialog.
-     * Parse the formatted properties string from dialogData instead of bypassing it.
-     *
-     * @param dialogData NewEntityDialogData
-     * @param request EntityCreationRequest
-     * @return List of entity properties
-     */
-    private java.util.List<java.util.Map<String, String>> createEntityProperties(final NewEntityDialogData dialogData, final EntityCreationRequest request) {
-        // Parse the formatted properties string from dialogData back to short properties format
-        final java.util.List<java.util.Map<String, String>> shortProperties = PropertyParsingUtil.parseFormattedPropertiesString(dialogData.getProperties());
-        
-        // Use DbSchemaGeneratorUtil to complement properties with proper database column metadata
-        final java.util.List<java.util.Map<String, String>> complementedProperties = 
-                com.magento.idea.magento2plugin.actions.generation.generator.util.DbSchemaGeneratorUtil
-                        .complementShortPropertiesByDefaults(shortProperties);
-        
-        // Add the identity column at the beginning (same as NewEntityDialog)
-        complementedProperties.add(0, 
-                com.magento.idea.magento2plugin.actions.generation.generator.util.DbSchemaGeneratorUtil
-                        .getTableIdentityColumnData(dialogData.getIdFieldName()));
-        
-        return complementedProperties;
     }
 
     /**
