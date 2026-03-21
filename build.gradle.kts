@@ -127,23 +127,12 @@ tasks {
     }
 
     test {
-        val excludePatterns = project.findProperty("excludeTests") as String?
-
-        if (!excludePatterns.isNullOrEmpty()) {
-            // Split the comma-separated string and apply exclusions
-            excludePatterns.split(",").forEach {
-                exclude(it.trim())
-            }
-        }
-
         // Workaround for kernel-related crashes in tests (Fleet/Platform Kernel background tasks)
         systemProperty("intellij.platform.kernel.disable", "true")
         systemProperty("ide.fleet.launch", "false")
 
         useJUnitPlatform()
     }
-
-
 }
 
 intellijPlatformTesting {
