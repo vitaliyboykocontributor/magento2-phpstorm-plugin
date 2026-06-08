@@ -54,4 +54,24 @@ class MagentoMcpToolset : McpToolset {
             else -> "mode must be `help`, `detailed_schema`, or `query`. Use `help` to inspect the compact Magento inspection catalog."
         }
     }
+
+    /**
+     * Provides a project-wide dead-code candidate search for Magento assets and declarations.
+     */
+    @McpTool(name = "magento_dead_code")
+    @McpDescription("Magento dead-code candidate search with three context-conscious modes. Best used after a long task or refactoring when the caller provides `moduleName` for a specific recently updated or created module. Use mode `help` first to get the compact catalog of queryType values. Use mode `detailed_schema` with one queryType to load parameters. Use mode `query` with queryType and parametersJson to search the currently opened Magento project. Supported queryType values are `unused_html_templates`, `unused_js`, `unused_plugins`, `unused_observers`, and `all`. It can be wrong on legacy code. Every found file or declaration requires manual verification because project-specific ways of initializing things can hide static references; treat results as candidates, not safe-delete instructions.")
+    suspend fun magentoDeadCode(
+        mode: String,
+        queryType: String,
+        parametersJson: String
+    ): String {
+        return when (mode.trim().lowercase().replace('-', '_').replace(' ', '_')) {
+            "help" -> MagentoDeadCodeCommands.help()
+            "schema", "detailed_schema" -> MagentoDeadCodeCommands.detailedSchema(queryType)
+            "query" -> MagentoMcpToolsetSupport.withProjectReadAction(requireSmartMode = true) {
+                MagentoDeadCodeCommands.query(it, queryType, parametersJson)
+            }
+            else -> "mode must be `help`, `detailed_schema`, or `query`. Use `help` to inspect the compact Magento dead-code catalog."
+        }
+    }
 }

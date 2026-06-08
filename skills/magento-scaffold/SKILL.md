@@ -19,6 +19,12 @@ Use this skill when the user asks to create Magento or Adobe Commerce code scaff
    - For a newly created module, pass the returned combined `moduleName` such as `Foo_Bar` to follow-up scaffolds.
    - If CLI validation is needed, call `describe_magento_cli_environment` before running shell commands and use returned project-local wrappers.
 
+3. End-of-task cleanup suggestion:
+   - This is not part of scaffold rendering itself.
+   - After completing a broader Magento long task or refactoring, especially when a specific module was recently updated or created, suggest running `magento_dead_code`.
+   - Prefer passing `moduleName` for the recently changed module instead of scanning legacy code broadly.
+   - Explain that results are candidates only: the tool can be wrong on legacy code and every found file or declaration requires manual verification.
+
 ## Scaffold Types
 
 Supported `scaffoldType` values:
@@ -45,6 +51,7 @@ Supported `scaffoldType` values:
 - EAV `options` are only valid for `select` or `multiselect` frontend inputs.
 - For CRUD properties, use `field_name:type` strings and do not include the primary ID field.
 - `entity_crud` intentionally generates CQRS-style read/write separation, such as query and command classes, instead of the standard Magento repository-only structure.
+- Do not automatically run `magento_dead_code` after a simple scaffold-only task unless the user asks. For broader long tasks or refactors, suggest it as a follow-up verification step.
 
 ## Examples
 
@@ -67,5 +74,15 @@ Render a module:
   "mode": "render",
   "scaffoldType": "module",
   "parametersJson": "{\"packageName\":\"Foo\",\"moduleName\":\"Bar\"}"
+}
+```
+
+Suggest a dead-code follow-up after a broader long task or refactoring:
+
+```json
+{
+  "mode": "query",
+  "queryType": "all",
+  "parametersJson": "{\"moduleName\":\"Foo_Bar\",\"scope\":\"app_code\",\"limit\":100}"
 }
 ```
