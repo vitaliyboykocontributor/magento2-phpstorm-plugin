@@ -108,7 +108,9 @@ intellijPlatform {
 
         ideaVersion {
             sinceBuild = providers.gradleProperty("pluginSinceBuild")
-            untilBuild = providers.gradleProperty("pluginUntilBuild")
+            providers.gradleProperty("pluginUntilBuild").orNull?.takeIf(String::isNotBlank)?.let {
+                untilBuild = it
+            }
         }
     }
 

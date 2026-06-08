@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0).
 
 
+## 2026.3.1
+
+### Added
+
+- `magento_dead_code` MCP tool for PHP-backed dead-code candidate searches covering unused Knockout HTML templates, unused JavaScript files, invalid plugin declarations, and observer declarations that require verification.
+
+### Changed
+
+- Magento scaffold skill now suggests running `magento_dead_code` after broader long tasks or refactoring for a recently updated or created module, while warning that legacy-code results and every found file or declaration require manual verification.
+- Updated Gradle wrapper to 9.5.1, PhpStorm test platform to 2026.1.3, and IntelliJ Platform compatibility metadata.
+
 ## 2026.3.0
 
 ### Added
