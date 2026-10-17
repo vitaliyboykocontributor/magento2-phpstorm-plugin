@@ -1,0 +1,3 @@
+# Unrelated tool config; a file name alone is not enough to identify an app.
+server:
+  port: 8080

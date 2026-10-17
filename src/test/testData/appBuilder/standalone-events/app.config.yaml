@@ -1,0 +1,30 @@
+application:
+  actions: actions
+  runtimeManifest:
+    packages:
+      catalog:
+        inputs:
+          LOG_LEVEL: $LOG_LEVEL
+        actions:
+          updated:
+            function: actions/catalog/updated.js
+            web: 'no'
+            runtime: nodejs:22
+            annotations:
+              require-adobe-auth: false
+              final: true
+          health:
+            function: actions/health/index.js
+            web: 'yes'
+            runtime: nodejs:22
+            annotations:
+              require-adobe-auth: true
+  events:
+    registrations:
+      catalog-updates:
+        description: Receive catalog changes from Commerce
+        events_of_interest:
+          - provider_metadata: commerce
+            event_codes:
+              - observer.catalog_product_save_commit_after
+        runtime_action: catalog/updated

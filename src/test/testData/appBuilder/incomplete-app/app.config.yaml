@@ -1,0 +1,24 @@
+application:
+  runtimeManifest:
+    packages:
+      catalog:
+        actions:
+          missing-source:
+            function: actions/deleted/index.js
+            web: 'no'
+            runtime: nodejs:22
+          generated:
+            function: .generated/actions/app-config.js
+            web: 'yes'
+            runtime: nodejs:22
+  events:
+    registrations:
+      renamed-handler:
+        description: An action was renamed but its registration was not updated
+        events_of_interest:
+          - provider_metadata: commerce
+            event_codes: [observer.catalog_product_save_commit_after]
+        runtime_action: catalog/old-name
+extensions:
+  commerce/extensibility/1:
+    $include: src/missing/ext.config.yaml

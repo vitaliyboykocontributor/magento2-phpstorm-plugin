@@ -1,0 +1,1 @@
+{"id":"fixture-event-1","type":"observer.catalog_product_save_commit_after","source":"urn:fixture:commerce","data":{"value":{"sku":"TEST-SKU","name":"Fixture product"}}}

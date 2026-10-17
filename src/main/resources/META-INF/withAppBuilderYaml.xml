@@ -1,0 +1,5 @@
+<idea-plugin>
+    <extensions defaultExtensionNs="com.intellij">
+        <psi.referenceContributor implementation="com.magento.idea.magento2plugin.appbuilder.AppBuilderReferenceContributor"/>
+    </extensions>
+</idea-plugin>

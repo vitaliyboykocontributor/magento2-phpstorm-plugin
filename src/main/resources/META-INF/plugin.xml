@@ -13,6 +13,7 @@
     <depends>com.intellij.copyright</depends>
     <depends optional="true" config-file="withMcp.xml">com.intellij.mcpServer</depends>
     <depends optional="true" config-file="withPhp.xml">com.jetbrains.php</depends>
+    <depends optional="true" config-file="withAppBuilderYaml.xml">org.jetbrains.plugins.yaml</depends>
 
     <actions>
         <group id="MagentoContextBasedActionsGroup"
@@ -91,6 +92,13 @@
     </actions>
 
     <extensions defaultExtensionNs="com.intellij">
+        <projectService serviceImplementation="com.magento.idea.magento2plugin.project.AppBuilderSettings"/>
+        <projectConfigurable
+                groupId="tools"
+                instance="com.magento.idea.magento2plugin.project.AppBuilderConfigurable"
+                id="Magento2.AppBuilder"
+                displayName="Adobe App Builder"
+                nonDefaultProject="true"/>
         <projectService serviceImplementation="com.magento.idea.magento2plugin.project.Settings"/>
         <projectService serviceImplementation="com.magento.idea.magento2plugin.project.startup.DeferredProjectOpenActions"/>
 

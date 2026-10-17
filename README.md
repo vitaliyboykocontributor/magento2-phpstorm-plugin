@@ -71,6 +71,27 @@
 5. Go to `Settings > Preferences > Languages & Frameworks > PHP > Frameworks > Magento` in the PhpStorm IDE
 6. Check `Enable` and click the `OK` button
 
+## Adobe App Builder integration
+
+Open **Settings > Tools > Adobe App Builder**, select **Enable Adobe App Builder integration**,
+and choose the application's root directory. Click **Apply** to save the selection for this project.
+This separate settings page is available in every IDE supported by the plugin, including PhpStorm,
+WebStorm, and IntelliJ IDEA with the required JavaScript plugins. It does not require enabling Magento
+integration or selecting a Magento installation. Disabling App Builder integration retains the directory.
+
+Use **Go to Declaration** (Ctrl+B / Cmd+B) on `runtimeActions` event subscriptions or
+`runtimeAction` webhooks in `app.commerce.config.ts` / `.js` to open the action declaration.
+The same navigation works for `runtime_action` event registrations in `app.config.yaml`.
+From the action's `function` value, navigate to its handler file; `$include` values open the
+included configuration. Nested includes resolve relative to the file that declares them.
+
+Navigation requires the IDE's YAML plugin and stays within the selected application directory.
+It supports literal action names and file paths; computed JavaScript values and generated files
+that do not exist yet cannot be resolved. Configuration inspections remain a later roadmap item.
+
+Representative projects and expected navigation targets are available in the
+[App Builder fixture collection](src/test/testData/appBuilder/README.md).
+
 ## Works with
 
 * PhpStorm 2026+

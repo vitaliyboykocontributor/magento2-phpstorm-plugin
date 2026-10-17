@@ -9,6 +9,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0).
 
 ### Added
 
+- Separate Adobe App Builder project settings under Tools, with an integration toggle and application directory selection in all supported IDEs.
+- App Builder Go to Declaration from Commerce event/webhook subscriptions and I/O Events registrations to action declarations, and from YAML includes and action function paths to files within the selected application.
 - PhpStorm metadata for Hyvä and Magewire view models, factories, checkout forms, evaluation types, and flash messages [#2735](https://github.com/magento/magento2-phpstorm-plugin/pull/2735).
 - Return-type inference for Magento validator, message, and unit-test object factories, plus argument completion for area codes, filesystem directories, and sort directions.
 - `magento_compatibility` MCP tool for built-in UCT backward and upgrade compatibility analysis of PHP and XML files by project path or Magento module name, with supported target version discovery, background scans, paginated findings, and cancellation.

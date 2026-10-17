@@ -1,0 +1,8 @@
+{
+  "name": "fixture-commerce-integration",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "@adobe/aio-commerce-lib-app": "^2.0.0"
+  }
+}

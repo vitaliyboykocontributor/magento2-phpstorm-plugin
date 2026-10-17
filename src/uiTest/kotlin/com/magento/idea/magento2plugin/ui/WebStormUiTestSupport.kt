@@ -40,6 +40,7 @@ private const val MAGENTO_SUPPORT_NOTIFICATION = "Enable Magento support for thi
 internal fun runWebStormUiTest(
     fixtureName: String,
     vararg generatedFilesToCleanup: String,
+    enableMagento: Boolean = true,
     test: Driver.(projectPath: Path) -> Unit,
 ) {
     WebStormUiTestEnvironment.initialize()
@@ -61,7 +62,9 @@ internal fun runWebStormUiTest(
             addSystemProperty("jb.consents.confirmation.enabled", false)
         }
     }.runIdeWithDriver().useDriverAndCloseIde {
-        enableMagentoSupport()
+        if (enableMagento) {
+            enableMagentoSupport()
+        }
         test(projectPath)
     }
 }
@@ -112,7 +115,11 @@ private object WebStormUiTestEnvironment {
 
 private object UiTestProjectFixture {
     fun copy(fixtureName: String, testName: String): Path {
-        val source = Path.of("src/uiTest/resources/projects", fixtureName).absolute().toFile()
+        val source = if (fixtureName.startsWith("appBuilder/")) {
+            Path.of("src/test/testData", fixtureName)
+        } else {
+            Path.of("src/uiTest/resources/projects", fixtureName)
+        }.absolute().toFile()
         val target = Path.of("build/ui-test-projects", testName).absolute().toFile()
 
         check(source.isDirectory) { "UI test fixture does not exist: ${source.path}" }

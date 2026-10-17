@@ -1,0 +1,11 @@
+runtimeManifest:
+  packages:
+    webhook:
+      actions:
+        check-stock:
+          function: actions/check-stock/index.js
+          web: 'yes'
+          runtime: nodejs:22
+          annotations:
+            require-adobe-auth: true
+            final: true

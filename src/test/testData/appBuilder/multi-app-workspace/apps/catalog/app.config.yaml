@@ -1,0 +1,9 @@
+application:
+  runtimeManifest:
+    packages:
+      shared-name:
+        actions:
+          updated:
+            function: actions/updated/index.js
+            web: 'no'
+            runtime: nodejs:22

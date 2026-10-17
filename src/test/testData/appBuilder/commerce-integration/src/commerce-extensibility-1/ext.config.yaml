@@ -1,0 +1,14 @@
+runtimeManifest:
+  packages:
+    order-commerce:
+      actions:
+        $include: actions/order/commerce/actions.config.yaml
+    order-backoffice:
+      actions:
+        $include: actions/order/external/actions.config.yaml
+    audit:
+      actions:
+        record:
+          function: actions/audit/record.js
+          web: 'no'
+          runtime: nodejs:22

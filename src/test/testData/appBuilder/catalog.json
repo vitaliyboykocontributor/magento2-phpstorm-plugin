@@ -1,0 +1,115 @@
+[
+  {
+    "name": "standalone-events",
+    "roots": [
+      "."
+    ],
+    "outside": [],
+    "navigation": [
+      {
+        "source": "app.config.yaml",
+        "reference": "catalog/updated",
+        "target": "actions/catalog/updated.js"
+      }
+    ]
+  },
+  {
+    "name": "commerce-integration",
+    "roots": [
+      "."
+    ],
+    "outside": [],
+    "navigation": [
+      {
+        "source": "app.commerce.config.ts",
+        "reference": "order-commerce/updated",
+        "target": "src/commerce-extensibility-1/actions/order/commerce/updated/index.js"
+      },
+      {
+        "source": "app.commerce.config.ts",
+        "reference": "order-backoffice/updated",
+        "target": "src/commerce-extensibility-1/actions/order/external/updated/index.js"
+      },
+      {
+        "source": "app.commerce.config.ts",
+        "reference": "audit/record",
+        "target": "src/commerce-extensibility-1/actions/audit/record.js"
+      }
+    ]
+  },
+  {
+    "name": "checkout-webhook",
+    "roots": [
+      "."
+    ],
+    "outside": [],
+    "navigation": [
+      {
+        "source": "app.commerce.config.ts",
+        "reference": "webhook/check-stock",
+        "target": "src/commerce-extensibility-1/actions/check-stock/index.js"
+      }
+    ]
+  },
+  {
+    "name": "multi-app-workspace",
+    "roots": [
+      "apps/catalog",
+      "apps/orders"
+    ],
+    "outside": [
+      "tools/app.config.yaml"
+    ],
+    "navigation": [
+      {
+        "source": "apps/catalog/app.config.yaml",
+        "reference": "updated",
+        "target": "apps/catalog/actions/updated/index.js"
+      },
+      {
+        "source": "apps/orders/app.config.yaml",
+        "reference": "updated",
+        "target": "apps/orders/actions/updated/index.js"
+      }
+    ]
+  },
+  {
+    "name": "incomplete-app",
+    "roots": [
+      "."
+    ],
+    "outside": [],
+    "navigation": [],
+    "missing": [
+      {
+        "source": "app.config.yaml",
+        "reference": "actions/deleted/index.js",
+        "reason": "missing source"
+      },
+      {
+        "source": "app.config.yaml",
+        "reference": ".generated/actions/app-config.js",
+        "reason": "generated output absent before build; distinguish from authored source"
+      },
+      {
+        "source": "app.config.yaml",
+        "reference": "src/missing/ext.config.yaml",
+        "reason": "missing include"
+      },
+      {
+        "source": "app.config.yaml",
+        "reference": "catalog/old-name",
+        "reason": "unresolved action"
+      }
+    ]
+  },
+  {
+    "name": "plain-node",
+    "roots": [],
+    "outside": [
+      "app.config.yaml",
+      "index.js"
+    ],
+    "navigation": []
+  }
+]

@@ -1,0 +1,3 @@
+extensions:
+  commerce/extensibility/1:
+    $include: src/commerce-extensibility-1/ext.config.yaml

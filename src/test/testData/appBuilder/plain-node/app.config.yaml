@@ -1,0 +1,4 @@
+# Ordinary service configuration, not an App Builder manifest.
+server:
+  host: localhost
+  port: 3000
